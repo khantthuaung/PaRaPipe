@@ -33,9 +33,13 @@ async def summarize(text: str) -> str:
     if not text.strip():
         return "No readable or spoken content was found."
     prompt = (
-        "Turn this class material into accurate student notes. Use these headings: "
+        "Turn the source below into concise, accurate student notes. Use these headings: "
         "Overview, Key concepts, Definitions, Examples, Important formulas or dates, "
-        "Assignments, Likely exam topics, and Review questions. Never invent facts.\n\n"
+        "Assignments, Likely exam topics, and Review questions. Use only information "
+        "explicitly present in the source. Do not add background knowledge, inferred "
+        "assignments, names, dates, formulas, or examples. For any unsupported heading, "
+        "write 'Not provided in the source.' Review questions must be answerable only "
+        "from the source.\n\nSOURCE:\n"
         + text[:120000]
     )
     try:
@@ -43,6 +47,8 @@ async def summarize(text: str) -> str:
             response = await client.post(
                 f"{os.getenv('OLLAMA_URL', 'http://ollama:11434').rstrip('/')}/api/chat",
                 json={"model": os.getenv("OLLAMA_MODEL", "qwen3:8b"), "stream": False,
+                      "think": False,
+                      "options": {"num_predict": 900},
                       "messages": [{"role": "user", "content": prompt}]},
             )
             response.raise_for_status()
