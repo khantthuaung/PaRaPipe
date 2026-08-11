@@ -23,5 +23,8 @@ export const materials = sqliteTable("materials", {
   sourceUrl: text("source_url"),
   storageKey: text("storage_key"),
   status: text("status").notNull(),
+  transcript: text("transcript"),
+  summary: text("summary"),
+  error: text("error"),
   createdAt: text("created_at").notNull(),
 });
