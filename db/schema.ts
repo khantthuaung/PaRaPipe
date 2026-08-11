@@ -15,3 +15,13 @@ export const subjects = sqliteTable("subjects", {
   name: text("name").primaryKey(),
   createdAt: text("created_at").notNull(),
 });
+
+export const materials = sqliteTable("materials", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").notNull(),
+  sourceUrl: text("source_url"),
+  storageKey: text("storage_key"),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+});
