@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { lecturesDb } from "../../../../../lib/lectures-db";
+import { readMlResponse } from "../../../../../lib/ml-response";
 
 type LectureRow = {
   id: string;
@@ -32,7 +33,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       headers: env.ML_SERVICE_TOKEN ? { authorization: `Bearer ${env.ML_SERVICE_TOKEN}` } : {},
       body: form,
     });
-    const result = await response.json() as { transcript?: string; summary?: string; error?: string; detail?: string };
+    const result = await readMlResponse(response);
     if (!response.ok) throw new Error(result.error || result.detail || "Transcription failed");
 
     const transcript = result.transcript?.trim() ?? "";

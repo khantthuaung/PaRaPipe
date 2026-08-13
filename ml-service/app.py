@@ -63,14 +63,22 @@ async def download_direct_media(url: str, path: Path):
     if parsed.scheme != "https":
         raise HTTPException(status_code=400, detail="Only HTTPS media URLs are supported")
     async with httpx.AsyncClient(follow_redirects=True, timeout=120) as client:
-        async with client.stream("GET", url) as response:
-            response.raise_for_status()
-            content_type = response.headers.get("content-type", "")
-            if not (content_type.startswith("audio/") or content_type.startswith("video/")):
-                raise HTTPException(status_code=422, detail="This is a webpage link, not a direct media file. Use a platform-approved connector.")
-            with path.open("wb") as output:
-                async for chunk in response.aiter_bytes():
-                    output.write(chunk)
+        try:
+            response_context = client.stream("GET", url)
+            async with response_context as response:
+                if response.status_code == 429:
+                    raise HTTPException(status_code=422, detail="This video website blocked direct access. Upload an audio or video file instead.")
+                response.raise_for_status()
+                content_type = response.headers.get("content-type", "")
+                if not (content_type.startswith("audio/") or content_type.startswith("video/")):
+                    raise HTTPException(status_code=422, detail="This link is a webpage, not a direct media file. Upload the audio or video file instead.")
+                with path.open("wb") as output:
+                    async for chunk in response.aiter_bytes():
+                        output.write(chunk)
+        except HTTPException:
+            raise
+        except httpx.HTTPError as error:
+            raise HTTPException(status_code=422, detail="The media could not be downloaded. Upload the audio or video file instead.") from error
 
 
 @app.get("/health")
