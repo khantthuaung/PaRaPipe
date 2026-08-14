@@ -48,3 +48,5 @@ h1,h2,h3,p { margin-top:0; }.topbar h1 { font:700 27px Georgia,serif; margin:0; 
 @media(max-width:700px){.materials-grid{grid-template-columns:1fr}.import-button{font-size:0}.import-button:after{content:"↑";font-size:16px}}
 .view-home .materials-section{display:none}.view-lectures .dashboard-grid,.view-lectures .materials-section{display:none}.view-materials .dashboard-grid,.view-materials .recent-section{display:none}.view-materials .materials-section{margin-top:0}.view-subjects .dashboard-grid,.view-subjects .recent-section,.view-subjects .materials-section{display:none}.section-title>a{color:var(--green);font-size:11px;font-weight:800}.managed-row>a{margin-left:auto;color:var(--green);font-size:9px;font-weight:800}.brand,.nav-item,.subject-item{ text-decoration:none }
 .note-preview>p,.note-preview details p{white-space:pre-wrap}
+.lecture-layout{align-items:start}.lecture-list{align-self:start;grid-auto-rows:max-content}.lecture-row{min-height:66px;height:auto}.note-preview{align-self:start;position:sticky;top:24px;max-height:calc(100vh - 48px);overflow:auto}
+@media(max-width:950px){.note-preview{position:static;max-height:none;overflow:visible}}
