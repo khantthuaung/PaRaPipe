@@ -12,6 +12,15 @@ app = FastAPI(title="Notedly ML Processor")
 model = None
 
 
+def timestamp(seconds: float) -> str:
+    total = max(0, int(seconds))
+    hours, remainder = divmod(total, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
+
+
 def authorize(value: str | None):
     expected = os.getenv("ML_SERVICE_TOKEN")
     if expected and value != f"Bearer {expected}":
@@ -29,17 +38,30 @@ def whisper_model():
     return model
 
 
-async def summarize(text: str) -> str:
+async def summarize(text: str, timestamped: bool = False) -> str:
     if not text.strip():
         return "No readable or spoken content was found."
+    evidence_rule = (
+        "Every bullet containing a factual claim must end with the supporting timestamp "
+        "in square brackets, copied exactly from the transcript. "
+        if timestamped else
+        "Do not add timestamps because this document source has no audio timing. "
+    )
     prompt = (
-        "Turn the source below into concise, accurate student notes. Use these headings: "
-        "Overview, Key concepts, Definitions, Examples, Important formulas or dates, "
-        "Assignments, Likely exam topics, and Review questions. Use only information "
-        "explicitly present in the source. Do not add background knowledge, inferred "
-        "assignments, names, dates, formulas, or examples. For any unsupported heading, "
-        "write 'Not provided in the source.' Review questions must be answerable only "
-        "from the source.\n\nSOURCE:\n"
+        "Extract valuable, evidence-based student notes from the timestamped classroom "
+        "transcript below. Distinguish lecturer explanations, instructions, student "
+        "questions, lecturer answers, examples, corrections, deadlines, formulas, and "
+        "emphasized points when the transcript supports them. Do not guess speaker names. "
+        "Use these headings: Overview; Key takeaways; Concepts and definitions; "
+        "Instructions, assignments and deadlines; Questions and answers; Examples; "
+        "Important formulas, dates or numbers; Likely review topics; Unclear points. "
+        + evidence_rule +
+        "Combine nearby lines "
+        "when they express one idea. Use only information explicitly present in the "
+        "source. Never add background knowledge or infer an assignment. If a section is "
+        "unsupported, write 'Not provided in the source.' Review topics must be grounded "
+        "in repeated, emphasized, or explicitly assessment-related speech.\n\n"
+        + ("TIMESTAMPED TRANSCRIPT:\n" if timestamped else "DOCUMENT TEXT:\n")
         + text[:120000]
     )
     try:
@@ -110,7 +132,13 @@ async def process(
         if kind == "pdf":
             document = fitz.open(source)
             transcript = "\n\n".join(page.get_text() for page in document)
+            timestamped = False
         else:
             segments, _ = whisper_model().transcribe(str(source), vad_filter=True, beam_size=5)
-            transcript = " ".join(segment.text.strip() for segment in segments).strip()
-        return {"transcript": transcript, "summary": await summarize(transcript)}
+            transcript = "\n".join(
+                f"[{timestamp(segment.start)}] {segment.text.strip()}"
+                for segment in segments
+                if segment.text.strip()
+            ).strip()
+            timestamped = True
+        return {"transcript": transcript, "summary": await summarize(transcript, timestamped)}
