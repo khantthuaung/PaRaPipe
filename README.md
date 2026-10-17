@@ -1,100 +1,101 @@
-# vinext-starter
+# PaRaPipe
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+PaRaPipe records lectures and creates study notes on your computer.
+You do not need an account.
 
-## Prerequisites
+## Functions
 
-- Node.js `>=22.13.0`
+- Create and remove subjects.
+- Record, pause, and save lecture audio.
+- Type personal notes during a recording.
+- Change recorded speech to text with Whisper Small.
+- Create separate study notes with Qwen 4B.
+- Import audio, video, and PDF files.
+- Save video links.
+- Use a light or dark theme.
 
-## Quick Start
+## Requirements
 
-```bash
-npm install
-npm run dev
-npm run build
+- macOS with Apple Silicon. Other systems are not verified.
+- Node.js 22.13.0 or later.
+- Git and Homebrew.
+- About 3 GB of disk space for model files.
+- More disk space for recordings and software packages.
+
+An internet connection is necessary for installation and model downloads.
+After setup, the models run on your computer.
+
+## Install
+
+1. Get the source files.
+
+   ```sh
+   git clone https://github.com/khantthuaung/PaRaPipe.git
+   cd PaRaPipe
+   ```
+
+2. Install the required tools and packages.
+
+   ```sh
+   brew install whisper-cpp ffmpeg llama.cpp
+   npm ci
+   ```
+
+3. Download and configure the models.
+
+   ```sh
+   npm run transcription:setup
+   npm run notes:setup
+   ```
+
+   These commands create a private local configuration file.
+   Do not add that file to Git.
+
+4. Start the app.
+
+   ```sh
+   npm run dev
+   ```
+
+5. Open [localhost:3000](http://localhost:3000/) in your browser.
+
+To stop the app, press **Ctrl+C** in the terminal.
+
+## Use
+
+1. Create a subject.
+2. Select the subject before recording.
+3. Start the recording and permit microphone access.
+4. Type personal notes if necessary.
+5. Select **Finish & save**.
+6. Wait for the transcript and study notes.
+
+Keep the browser tab open until the recording is saved.
+The app does not save audio continuously.
+Check important study notes against the transcript.
+
+## Data and limits
+
+The app uses local Cloudflare D1 and R2 development storage.
+Recordings and model files stay outside Git.
+Keep the app on localhost. Do not expose it to the internet.
+
+- File imports must be 100 MB or smaller.
+- Transcription accepts recordings up to 100 MB and four hours.
+- Transcription starts after saving. Live captions are not available.
+- The app stores PDFs. It does not extract their text.
+- Video links are bookmarks. The app does not transcribe them.
+- The library loads the latest 100 lectures and materials.
+
+## Tests
+
+Run the build and tests:
+
+```sh
+npm test
 ```
 
-This starter does not use `wrangler.jsonc`.
+## License
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+The application uses the [MIT license](LICENSE).
+Fonts and models have separate licenses.

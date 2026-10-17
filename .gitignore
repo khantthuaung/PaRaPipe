@@ -28,8 +28,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# Local secrets. Keep only the example configuration in Git.
 .env*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.key
+*.p12
+*.pfx
 
 # vercel
 .vercel
@@ -38,3 +44,33 @@ yarn-error.log*
 /.wrangler/
 /outputs/
 /work/
+/.transcription/
+
+# Local data and model files
+/.notes/
+/models/
+/recordings/
+/uploads/
+/data/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.gguf
+*.download
+
+# Build caches and machine-specific files
+*.tsbuildinfo
+*.log
+.cache/
+__pycache__/
+*.py[cod]
+.venv/
+.idea/
+*.swp
+*.swo
+
+# Local preview captures can contain personal lecture data.
+/docs/screenshots/

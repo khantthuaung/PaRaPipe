@@ -6,8 +6,9 @@ interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
   RECORDINGS: R2Bucket;
-  ML_SERVICE_URL?: string;
-  ML_SERVICE_TOKEN?: string;
+  TRANSCRIPTION_SERVICE_URL?: string;
+  TRANSCRIPTION_SERVICE_TOKEN?: string;
+  NOTES_SERVICE_URL?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {

@@ -1,5 +1,7 @@
 import { env } from "cloudflare:workers";
 import { lecturesDb } from "../../../lib/lectures-db";
+import { transcriptionRequest } from "../../../lib/transcription";
+import { deleteStudyNotes } from "../../../lib/study-notes";
 
 export async function GET() {
   try {
@@ -31,8 +33,11 @@ export async function DELETE(request: Request) {
     const id = new URL(request.url).searchParams.get("id");
     if (!id) return Response.json({ error: "Lecture required" }, { status: 400 });
     const db = await lecturesDb();
+    const existing = await db.prepare("SELECT transcript FROM lectures WHERE id = ?").bind(id).first<{transcript:string}>();
     await db.prepare("DELETE FROM lectures WHERE id = ?").bind(id).run();
     if (env.RECORDINGS) await env.RECORDINGS.delete(`lectures/${id}`);
+    await transcriptionRequest(`/jobs/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => undefined);
+    await deleteStudyNotes("lectures",id,existing?.transcript??"");
     return Response.json({ ok: true });
   } catch {
     return Response.json({ error: "Unable to delete lecture" }, { status: 500 });
