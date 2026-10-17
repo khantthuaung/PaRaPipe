@@ -11,6 +11,20 @@ import ts from "typescript";
 
 const require = createRequire(import.meta.url);
 
+test("local storage works without OpenAI hosting metadata or packaging",async()=>{
+  const config=await readFile(new URL("../vite.config.ts",import.meta.url),"utf8");
+  assert.doesNotMatch(config,/\.openai|sites-vite-plugin|hostingConfig|sites\(\)/);
+  assert.match(config,/binding: "DB"/);
+  assert.match(config,/binding: "RECORDINGS"/);
+  assert.match(config,/database_name: "site-creator-d1"/);
+  assert.match(config,/bucket_name: "site-creator-r2"/);
+  for(const path of [".openai/hosting.json","build/sites-vite-plugin.ts"]){
+    await assert.rejects(access(new URL(`../${path}`,import.meta.url)),{code:"ENOENT"});
+  }
+  const ignore=await readFile(new URL("../.gitignore",import.meta.url),"utf8");
+  assert.ok(ignore.split("\n").includes("/.openai/"));
+});
+
 test("PaRaPipe uses the supplied logo and the warm light palette without resetting saved data",async()=>{
   const {exports:{NotedlyApp}}=await loadSource("app/page.tsx");
   const html=renderToStaticMarkup(React.createElement(NotedlyApp));
